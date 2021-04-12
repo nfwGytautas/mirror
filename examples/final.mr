@@ -1,0 +1,25 @@
+fn main() {
+	var i = 0
+	var inc = 0.5
+	var should_loop = 1
+
+	loop(!should_loop) {
+		match (i) {
+			on i < 5 {
+				print("less than 5")
+			}
+			on i > 5 {
+				print("more than 5")
+			}
+			on i == 10 {
+				print("breaking")
+				should_loop = 0
+			}
+			on _ {
+				print("default")
+			}
+		}
+	}
+
+	print("done")
+}
