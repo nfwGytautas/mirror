@@ -31,6 +31,10 @@ namespace mirror {
 				return mrrt_var;
 			}
 
+			if (ls->IdentifierStr == "return") {
+				return mrrt_ret;
+			}
+
 			return mrrt_identifier;
 		}
 

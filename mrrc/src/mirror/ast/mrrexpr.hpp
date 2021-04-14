@@ -11,7 +11,10 @@ namespace mirror {
 	enum mrr_type {
 		mrr_type_unspecified = 0,
 		mrr_type_num = 1,
-		mrr_type_str = 2
+		mrr_type_str = 2,
+
+		// Meta type, meaning this is a return expression so look at it's child for actual return type
+		mrr_type_ret = 3
 	};
 
 	/**
@@ -134,6 +137,51 @@ namespace mirror {
 	};
 
 	/**
+	 * @brief Return expression
+	*/
+	class mrr_ast_return_expr : public mrr_ast_expr {
+	public:
+		mrr_ast_return_expr(std::unique_ptr<mrr_ast_expr>& expr)
+			: m_expr(std::move(expr))
+		{}
+
+		virtual mrr_type get_type() override {
+			return mrr_type::mrr_type_ret;
+		}
+
+		mrr_type get_actual_type() {
+			return m_expr->get_type();
+		}
+
+		llvm::Value* codegen() override;
+
+	private:
+		std::unique_ptr<mrr_ast_expr> m_expr;
+	};
+
+	/**
+	 * @brief Body expression
+	*/
+	class mrr_ast_body_expr : public mrr_ast_expr {
+	public:
+		mrr_ast_body_expr(mrr_type rType, std::vector<std::unique_ptr<mrr_ast_expr>> expressions) 
+			: m_retType(rType), m_expressions(std::move(expressions))
+		{}
+
+		/**
+		 * @brief Nullptr if there was no return statement in the code
+		*/
+		virtual llvm::Value* codegen() override;
+
+		mrr_type returnType() const {
+			return m_retType;
+		}
+	private:
+		std::vector<std::unique_ptr<mrr_ast_expr>> m_expressions;
+		mrr_type m_retType;
+	};
+
+	/**
 	 * @brief Function prototype
 	*/
 	class mrr_ast_prototype {
@@ -141,7 +189,7 @@ namespace mirror {
 		mrr_ast_prototype(const std::string& name, std::vector<std::string> args)
 			: m_name(name), m_args(std::move(args)) {}
 
-		llvm::Function* codegen();
+		llvm::Function* codegen(mrr_type rType);
 	private:
 		std::string m_name;
 		std::vector<std::string> m_args;
@@ -152,12 +200,12 @@ namespace mirror {
 	*/
 	class mrr_ast_fn {
 	public:
-		mrr_ast_fn(std::unique_ptr<mrr_ast_prototype> prototype, std::vector<std::unique_ptr<mrr_ast_expr>> body)
+		mrr_ast_fn(std::unique_ptr<mrr_ast_prototype> prototype, std::unique_ptr<mrr_ast_body_expr> body)
 			: m_prototype(std::move(prototype)), m_body(std::move(body)) {}
 
 		llvm::Function* codegen();
 	private:
 		std::unique_ptr<mrr_ast_prototype> m_prototype;
-		std::vector<std::unique_ptr<mrr_ast_expr>> m_body;
+		std::unique_ptr<mrr_ast_body_expr> m_body;
 	};
 }

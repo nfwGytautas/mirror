@@ -54,5 +54,16 @@ namespace mirror {
 		 * @brief Parses a variable create
 		*/
 		std::unique_ptr<mrr_ast_expr> parse_var_create();
+
+		/**
+		 * @brief Parses a body
+		*/
+		std::unique_ptr<mrr_ast_body_expr> parse_body();
+
+		/**
+		 * @brief Parses a return statement
+		*/
+		std::unique_ptr<mrr_ast_expr> parse_return();
+
 	}
 }

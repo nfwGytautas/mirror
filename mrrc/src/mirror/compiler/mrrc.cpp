@@ -61,9 +61,8 @@ namespace mirror {
 			// Prepare by setting globals
 			compiler::set_current(c);
 			lexer::set_current(l);
-
+			lexer::next_token(l);
 			while (1) {
-				lexer::next_token(l);
 				switch (l->Curtok) {
 				case mrrt_eof:
 					return true;

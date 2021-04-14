@@ -179,14 +179,36 @@ namespace mirror {
 		return initVal;
 	}
 
-	llvm::Function* mrr_ast_prototype::codegen() {
+	llvm::Value* mrr_ast_body_expr::codegen() {
+		for (std::unique_ptr<mrr_ast_expr>& expr : m_expressions) {
+			llvm::Value* val = expr->codegen();
+
+			if (expr->get_type() == mrr_type::mrr_type_ret) {
+				compiler::get_current()->Builder->CreateRet(val);
+			}
+		}
+
+		return nullptr;
+	}
+
+	llvm::Function* mrr_ast_prototype::codegen(mrr_type rType) {
 		// TODO: String argument support
-		// TODO: Return type
+		// TODO: Argument types
 
 		std::vector<llvm::Type*> args(m_args.size(), llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
 
-		//llvm::FunctionType* ft = llvm::FunctionType::get(compiler.ty_double(), args, false);
-		llvm::FunctionType* ft = llvm::FunctionType::get(llvm::Type::getVoidTy(*compiler::get_current()->llvm), args, false);
+		llvm::FunctionType* ft = nullptr;
+		switch (rType) {
+		case mrr_type::mrr_type_num:
+			ft = llvm::FunctionType::get(llvm::Type::getDoubleTy(*compiler::get_current()->llvm), args, false);
+			break;
+		case mrr_type::mrr_type_str:
+			// TODO: String type return
+			break;
+		default:
+			ft = llvm::FunctionType::get(llvm::Type::getVoidTy(*compiler::get_current()->llvm), args, false);
+			break;
+		}
 
 		llvm::Function* f = llvm::Function::Create(ft, (llvm::GlobalValue::LinkageTypes)llvm::Function::ExternalLinkage, m_name, compiler::get_current()->Module);
 
@@ -200,9 +222,7 @@ namespace mirror {
 	}
 
 	llvm::Function* mrr_ast_fn::codegen() {
-		// TODO: Return type
-
-		llvm::Function* fn = m_prototype->codegen();
+		llvm::Function* fn = m_prototype->codegen(m_body->returnType());
 
 		if (!fn) {
 			return nullptr;
@@ -227,22 +247,17 @@ namespace mirror {
 			compiler::get_current()->NamedValues[arg.getName().str()] = ai;
 		}
 
-		for (std::unique_ptr<mrr_ast_expr>& expr : m_body) {
-			if (llvm::Value* retval = expr->codegen()) {
-
-			}
-			else {
-				fn->eraseFromParent();
-				return nullptr;
-			}
-		}
-
-		// TODO: Return value
-		compiler::get_current()->Builder->CreateRet(nullptr);
+		// TODO: Should probably clean this up cause this will cause double return instruction
+		llvm::Value* val = m_body->codegen();
+		compiler::get_current()->Builder->CreateRet(val);
 		llvm::verifyFunction(*fn);
 		compiler::get_current()->FPM->run(*fn);
 
 		return fn;
+	}
+
+	llvm::Value* mrr_ast_return_expr::codegen() {
+		return m_expr->codegen();
 	}
 
 }

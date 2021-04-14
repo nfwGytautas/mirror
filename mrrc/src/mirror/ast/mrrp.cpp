@@ -6,6 +6,17 @@
 namespace mirror {
 	namespace parser {
 
+		const char* rType_to_str(mrr_type rType) {
+			switch (rType) {
+			case mrr_type::mrr_type_num:
+				return "Number";
+			case mrr_type::mrr_type_str:
+				return "String";
+			default:
+				return "Unknown";
+			}
+		}
+
 		int get_precedence(char binop) {
 			// Binary operator precedence
 			switch (binop) {
@@ -47,6 +58,10 @@ namespace mirror {
 				return parse_string();
 			case mrrt_var:
 				return parse_var_create();
+			case mrrt_ret:
+				return parse_return();
+			case '{':
+				return parse_body();
 			case '(':
 				return parse_parenthesis();
 			default:
@@ -226,10 +241,10 @@ namespace mirror {
 		}
 
 		std::unique_ptr<mrr_ast_fn> parse_definition() {
-			// def ::= 'fn' prototype '{' * expression '}'
+			// def ::= 'fn' prototype body
 
 			std::unique_ptr<mrr_ast_fn> ret;
-			std::vector<std::unique_ptr<mrr_ast_expr>> body;
+			std::unique_ptr<mrr_ast_body_expr> body;
 
 			lexer::next_token(lexer::get_current()); // Consume fn
 
@@ -238,18 +253,7 @@ namespace mirror {
 				return nullptr;
 			}
 
-			if (lexer::get_current()->Curtok != '{') {
-				log_error("Expected '{' in function expression");
-				return nullptr;
-			}
-			lexer::next_token(lexer::get_current()); // Consume '{'
-
-			while (lexer::get_current()->Curtok != '}') {
-				if (auto e = parse_expression()) {
-					body.push_back(std::move(e));
-				}
-			}
-			lexer::next_token(lexer::get_current()); // Consume '}'
+			body = std::move(parse_body());
 
 			ret = std::make_unique<mrr_ast_fn>(std::move(proto), std::move(body));
 			return ret;
@@ -283,6 +287,46 @@ namespace mirror {
 			}
 
 			return std::make_unique<mrr_var_create_expr>(name, std::move(init));
+		}
+
+		std::unique_ptr<mrr_ast_body_expr> parse_body() {
+			// epxr ::= '{' *expressions '}'
+			std::vector<std::unique_ptr<mrr_ast_expr>> body;
+
+			if (lexer::get_current()->Curtok != '{') {
+				log_error("Expected '{' in function expression");
+				return nullptr;
+			}
+			lexer::next_token(lexer::get_current()); // Consume '{'
+
+			mrr_type rType = mrr_type::mrr_type_unspecified;
+
+			while (lexer::get_current()->Curtok != '}') {
+				if (auto e = parse_expression()) {
+					if (e->get_type() == mrr_type::mrr_type_ret) {
+						mrr_ast_return_expr* re = dynamic_cast<mrr_ast_return_expr*>(e.get());
+						// Check if not conflicting return types
+						if (rType != mrr_type::mrr_type_unspecified && rType != re->get_actual_type()) {
+							log_error("Mixed return types previous was %s, but found %s", rType_to_str(rType), rType_to_str(re->get_actual_type()));
+							return nullptr;
+						}
+						else {
+							rType = re->get_actual_type();
+						}
+					}
+
+					body.push_back(std::move(e));
+				}
+			}
+			lexer::next_token(lexer::get_current()); // Consume '}'
+
+			return std::make_unique<mrr_ast_body_expr>(rType, std::move(body));
+		}
+
+		std::unique_ptr<mrr_ast_expr> parse_return() {
+			// expr ::= return expr
+			lexer::next_token(lexer::get_current()); // Consume 'return'
+			return std::make_unique<mrr_ast_return_expr>(parse_expression());
 		}
 	}
 }

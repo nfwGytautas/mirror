@@ -21,8 +21,6 @@ namespace mirror {
 		args result = {};
 		
 		for (int i = 1; i < argc; i++) {
-			log_info("Found option: %s", argv[i]);
-
 			std::string astr = std::string(argv[i]);
 
 			if (astr == "-in") {
@@ -62,7 +60,6 @@ namespace mirror {
 		// Create mirror compiler and compile file to llvm IR
 		compiler::mrrc_init();
 		compiler::mrrc* c = compiler::mrrc_new();
-		log_info("Mirror compiler initiated:");
 		log_info("Beginning mirror compilation:");
 
 		std::string llvmOut = std::filesystem::path(a.Out).stem().string() + ".o";
