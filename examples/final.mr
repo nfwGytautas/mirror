@@ -4,18 +4,19 @@ fn main() {
 	var should_loop = 1
 
 	loop(!should_loop) {
-		match (i) {
-			on i < 5 {
-				print("less than 5")
-			}
-			on i > 5 {
+		should_loop = match (i) {
+			i<5 to { print("less than 5") }
+
+			i>5 to {
 				print("more than 5")
 			}
-			on i == 10 {
+
+			10 to {
 				print("breaking")
-				should_loop = 0
+				yield 0
 			}
-			on _ {
+
+			_ to {
 				print("default")
 			}
 		}

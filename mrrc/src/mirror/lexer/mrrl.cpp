@@ -35,6 +35,10 @@ namespace mirror {
 				return mrrt_ret;
 			}
 
+			if (ls->IdentifierStr == "loop") {
+				return mrrt_loop;
+			}
+
 			return mrrt_identifier;
 		}
 
@@ -74,7 +78,7 @@ namespace mirror {
 			}
 
 			// Identifier (alphabetic char)
-			if (isalpha(currentChar)) {
+			if (currentChar == '_' || isalpha(currentChar)) {
 				ls->IdentifierStr = currentChar;
 
 				// Parse identifier

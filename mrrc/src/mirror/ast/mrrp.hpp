@@ -65,5 +65,9 @@ namespace mirror {
 		*/
 		std::unique_ptr<mrr_ast_expr> parse_return();
 
+		/**
+		 * @brief Parses a loop statement
+		*/
+		std::unique_ptr<mrr_ast_expr> parse_loop();
 	}
 }

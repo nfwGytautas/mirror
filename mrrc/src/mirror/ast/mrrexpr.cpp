@@ -3,6 +3,8 @@
 
 namespace mirror {
 
+	constexpr const char* c_InnerLoopValue = "_it";
+
 	llvm::Function* get_func(const std::string& name) {
 		llvm::Function* fn = compiler::get_current()->Module->getFunction(name);
 
@@ -258,6 +260,57 @@ namespace mirror {
 
 	llvm::Value* mrr_ast_return_expr::codegen() {
 		return m_expr->codegen();
+	}
+
+	llvm::Value* mrr_ast_loop_expr::codegen() {
+		switch (this->m_expr->get_type()) {
+		case mrr_type::mrr_type_num: {
+			llvm::Value* startVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0));
+			llvm::Value* endVal = this->m_expr->codegen();
+			llvm::Value* StepVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(1.0));
+
+			llvm::Function* TheFunction = compiler::get_current()->Builder->GetInsertBlock()->getParent();
+
+			// Emit the body of the loop.  This, like any other expr, can change the
+			llvm::AllocaInst* ai = compiler::createEntryBlockAlloca(TheFunction, c_InnerLoopValue);
+			compiler::get_current()->NamedValues[c_InnerLoopValue] = ai;
+
+			// Store the value into the alloca.
+			compiler::get_current()->Builder->CreateStore(startVal, ai);
+
+			llvm::BasicBlock* LoopBB = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "loop", TheFunction);
+
+			// Insert an explicit fall through from the current block to the LoopBB.
+			compiler::get_current()->Builder->CreateBr(LoopBB);
+
+			// Start insertion in LoopBB.
+			compiler::get_current()->Builder->SetInsertPoint(LoopBB);
+
+			m_body->codegen();
+
+			llvm::Value* CurVar =
+				compiler::get_current()->Builder->CreateLoad(ai->getAllocatedType(), ai, c_InnerLoopValue);
+			llvm::Value* NextVar = compiler::get_current()->Builder->CreateFAdd(CurVar, StepVal, "nextvar");
+			compiler::get_current()->Builder->CreateStore(NextVar, ai);
+
+			llvm::Value* EndCond = compiler::get_current()->Builder->CreateFCmpONE(
+				NextVar, endVal, "loopcond");
+
+			// Create the "after loop" block and insert it.
+			llvm::BasicBlock* AfterBB =
+				llvm::BasicBlock::Create(*compiler::get_current()->llvm, "afterloop", TheFunction);
+
+			// Insert the conditional branch into the end of LoopEndBB.
+			compiler::get_current()->Builder->CreateCondBr(EndCond, LoopBB, AfterBB);
+
+			// Any new code will be inserted in AfterBB.
+			compiler::get_current()->Builder->SetInsertPoint(AfterBB);
+
+			return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
+		}
+		default:
+			return nullptr;
+		}
 	}
 
 }

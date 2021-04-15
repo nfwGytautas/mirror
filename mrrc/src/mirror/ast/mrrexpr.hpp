@@ -182,6 +182,21 @@ namespace mirror {
 	};
 
 	/**
+	 * @brief Loop expression
+	*/
+	class mrr_ast_loop_expr : public mrr_ast_expr {
+	public:
+		mrr_ast_loop_expr(std::unique_ptr<mrr_ast_expr> expr, std::unique_ptr<mrr_ast_body_expr> body)
+			: m_body(std::move(body)), m_expr(std::move(expr))
+		{}
+
+		virtual llvm::Value* codegen() override;
+	private:
+		std::unique_ptr<mrr_ast_expr> m_expr;
+		std::unique_ptr<mrr_ast_body_expr> m_body;
+	};
+
+	/**
 	 * @brief Function prototype
 	*/
 	class mrr_ast_prototype {

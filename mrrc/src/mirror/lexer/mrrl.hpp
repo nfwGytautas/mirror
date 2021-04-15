@@ -17,6 +17,7 @@ namespace mirror {
 		mrrt_str = -5,
 		mrrt_var = -6,
 		mrrt_ret = -7,
+		mrrt_loop = -8
 	};
 
 	namespace lexer {

@@ -60,6 +60,8 @@ namespace mirror {
 				return parse_var_create();
 			case mrrt_ret:
 				return parse_return();
+			case mrrt_loop:
+				return parse_loop();
 			case '{':
 				return parse_body();
 			case '(':
@@ -327,6 +329,25 @@ namespace mirror {
 			// expr ::= return expr
 			lexer::next_token(lexer::get_current()); // Consume 'return'
 			return std::make_unique<mrr_ast_return_expr>(parse_expression());
+		}
+		
+		std::unique_ptr<mrr_ast_expr> parse_loop() {
+			// expr ::= 'loop' '(' expression ')' body
+			
+			// TODO: Compiler errors
+			lexer::next_token(lexer::get_current()); // Consume 'loop'
+			lexer::next_token(lexer::get_current()); // Consume '('
+
+			std::unique_ptr<mrr_ast_expr> expr = parse_expression();
+			if (!expr) {
+				return nullptr;
+			}
+
+			lexer::next_token(lexer::get_current()); // Consume ')'
+
+			std::unique_ptr<mrr_ast_body_expr> body = parse_body();
+			
+			return std::make_unique<mrr_ast_loop_expr>(std::move(expr), std::move(body));
 		}
 	}
 }
