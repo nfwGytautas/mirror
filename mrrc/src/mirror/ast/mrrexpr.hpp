@@ -14,7 +14,10 @@ namespace mirror {
 		mrr_type_str = 2,
 
 		// Meta type, meaning this is a return expression so look at it's child for actual return type
-		mrr_type_ret = 3
+		mrr_type_ret = 3,
+
+		// Meta type, meaning this is a binary operation
+		mrr_type_bop = 4
 	};
 
 	/**
@@ -93,6 +96,10 @@ namespace mirror {
 	public:
 		mrr_bin_expr(char op, std::unique_ptr<mrr_ast_expr> lhs, std::unique_ptr<mrr_ast_expr> rhs)
 			: m_op(op), m_lhs(std::move(lhs)), m_rhs(std::move(rhs)) {}
+
+		virtual mrr_type get_type() override {
+			return mrr_type::mrr_type_bop;
+		}
 
 		// Inherited via mrr_ast_expr
 		virtual llvm::Value* codegen() override;
@@ -194,6 +201,26 @@ namespace mirror {
 	private:
 		std::unique_ptr<mrr_ast_expr> m_expr;
 		std::unique_ptr<mrr_ast_body_expr> m_body;
+	};
+
+	/**
+	 * @brief Match expression
+	*/
+	class mrr_ast_match_expr : public mrr_ast_expr {
+	public:
+		mrr_ast_match_expr(
+			std::unique_ptr<mrr_ast_expr> val,
+			std::vector<std::pair<std::unique_ptr<mrr_ast_expr>, std::unique_ptr<mrr_ast_body_expr>>> expressions, 
+			std::unique_ptr<mrr_ast_body_expr> dExpr)
+			: m_val(std::move(val)), m_expressions(std::move(expressions)), m_default(std::move(dExpr))
+		{}
+
+		virtual llvm::Value* codegen() override;
+
+	private:
+		std::unique_ptr<mrr_ast_expr> m_val;
+		std::vector<std::pair<std::unique_ptr<mrr_ast_expr>, std::unique_ptr<mrr_ast_body_expr>>> m_expressions;
+		std::unique_ptr<mrr_ast_body_expr> m_default;
 	};
 
 	/**

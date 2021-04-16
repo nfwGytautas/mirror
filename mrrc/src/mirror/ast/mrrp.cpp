@@ -24,6 +24,7 @@ namespace mirror {
 				return 2;
 
 			case '<':
+			case '>':
 				return 10;
 
 			case '+':
@@ -62,6 +63,8 @@ namespace mirror {
 				return parse_return();
 			case mrrt_loop:
 				return parse_loop();
+			case mrrt_match:
+				return parse_match();
 			case '{':
 				return parse_body();
 			case '(':
@@ -348,6 +351,75 @@ namespace mirror {
 			std::unique_ptr<mrr_ast_body_expr> body = parse_body();
 			
 			return std::make_unique<mrr_ast_loop_expr>(std::move(expr), std::move(body));
+		}
+		
+		std::unique_ptr<mrr_ast_expr> parse_match(){
+			// expr ::= 'match' '(' var ')' '{' '(' expr ')' 'to' body '}'
+
+			lexer::next_token(lexer::get_current()); // Consume 'match'
+			lexer::next_token(lexer::get_current()); // Consume '('
+
+			std::unique_ptr<mrr_ast_expr> val = parse_expression();
+
+			if (!val) {
+				log_error("Match on invalid value");
+				return nullptr;
+			}
+
+			lexer::next_token(lexer::get_current()); // Consume ')'
+			lexer::next_token(lexer::get_current()); // Consume '{'
+
+			std::vector<std::pair<std::unique_ptr<mrr_ast_expr>, std::unique_ptr<mrr_ast_body_expr>>> expressions;
+			std::unique_ptr<mrr_ast_body_expr> dExpr = nullptr;
+			while (lexer::get_current()->Curtok != '}') {
+				lexer::next_token(lexer::get_current()); // Consume '('
+
+				// Default
+				if (lexer::get_current()->IdentifierStr == "_") {
+					// Check if not more than 1 default
+					if (dExpr) {
+						log_error("Match expression can only have 1 default case");
+						return nullptr;
+					}
+
+					lexer::next_token(lexer::get_current()); // Consume '_'
+					lexer::next_token(lexer::get_current()); // Consume ')'
+					lexer::next_token(lexer::get_current()); // Consume 'to'
+
+					dExpr = parse_body();
+					if (!dExpr) {
+						log_error("Match expression requires body");
+						return nullptr;
+					}
+				}
+				else {
+					std::unique_ptr<mrr_ast_expr> mExpr = parse_expression();
+					if (!mExpr) {
+						log_error("Invalid match expression");
+						return nullptr;
+					}
+
+					lexer::next_token(lexer::get_current()); // Consume ')'
+					lexer::next_token(lexer::get_current()); // Consume 'to'
+
+					std::unique_ptr<mrr_ast_body_expr> body = parse_body();
+					if (!body) {
+						log_error("Match expression requires body");
+						return nullptr;
+					}
+
+					expressions.push_back(
+						std::make_pair<std::unique_ptr<mrr_ast_expr>, std::unique_ptr<mrr_ast_body_expr>>(
+							std::move(mExpr), 
+							std::move(body)
+							)
+					);
+				}
+			}
+
+			lexer::next_token(lexer::get_current()); // Consume '}'
+			
+			return std::make_unique<mrr_ast_match_expr>(std::move(val), std::move(expressions), std::move(dExpr));
 		}
 	}
 }
