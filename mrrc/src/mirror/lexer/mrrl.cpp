@@ -9,16 +9,25 @@ namespace mirror {
 		mrrl* g_ci = nullptr;
 
 		int get_c(mrrl* ls) {
-			if (ls->In == nullptr) {
-				return getchar();
-			}
-			else {
-				if (ls->In->StreamPosition + 1 > ls->In->Input.size()) {
-					return EOF;
-				}
+		    if (ls->In == nullptr) {
+		        ls->In = new mrr_lexer_stream();
 
-				return ls->In->Input[ls->In->StreamPosition++];
-			}
+		        int c = getchar();
+		        while(c != EOF) {
+		            ls->In->Input += c;
+                    c = getchar();
+		        }
+		    }
+
+            if (ls->In->StreamPosition + 1 > ls->In->Input.size()) {
+                return EOF;
+            }
+
+            return ls->In->Input[ls->In->StreamPosition++];
+		}
+
+		int peek_c(mrrl* ls) {
+		    return ls->In->Input[ls->In->StreamPosition];
 		}
 
 		int parse_identifier(mrrl* ls) {
@@ -66,6 +75,18 @@ namespace mirror {
 				}
 			}
 
+			if (currentChar == '-' && peek_c(ls) == '>') {
+			    // Consume both
+                currentChar = get_c(ls);
+                currentChar = get_c(ls);
+			    return mrrt_rarrow;
+			}
+
+			if (currentChar == ':') {
+                currentChar = get_c(ls);
+			    return mrrt_type_annot;
+			}
+
 			// String
 			if (currentChar == '"') {
 				ls->IdentifierStr = "";
@@ -86,8 +107,10 @@ namespace mirror {
 				ls->IdentifierStr = currentChar;
 
 				// Parse identifier
-				while (isalnum((currentChar = get_c(ls)))) {
+                currentChar = get_c(ls);
+				while (isalnum(currentChar) || currentChar == '_') {
 					ls->IdentifierStr += currentChar;
+                    currentChar = get_c(ls);
 				}
 
 				return parse_identifier(ls);

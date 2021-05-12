@@ -1,4 +1,6 @@
 #include "mirror/ast/mrrexpr.hpp"
+#include "base.hpp"
+
 
 namespace mirror {
 	
@@ -18,5 +20,17 @@ namespace mirror {
 	llvm::Constant* const_str(const std::string& val) {
 		return compiler::get_current()->Builder->CreateGlobalStringPtr(llvm::StringRef(val));
 	}
+
+    mrr_type type_from_string(const std::string &type) {
+        if (type == "Num") {
+            return mrr_type_num;
+        }
+
+        if (type == "Str") {
+            return mrr_type_str;
+        }
+
+        return mrr_type_unspecified;
+    }
 
 }

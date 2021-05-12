@@ -5,9 +5,21 @@ namespace mirror {
 
 	llvm::Function* mrr_ast_prototype::codegen(mrr_type rType) {
 		// TODO: String argument support
-		// TODO: Argument types
 
-		std::vector<llvm::Type*> args(m_args.size(), llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
+		std::vector<llvm::Type*> args;
+		args.reserve(m_args.size());
+
+		// Parse args
+		for (const std::string& type : m_types) {
+		    switch(type_from_string(type)) {
+		        case mrr_type_num:
+		            args.push_back(llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
+		            break;
+		        default:
+		            log_error("Unknown type in function argument '%'", type.c_str());
+		            return nullptr;
+		    }
+		}
 
 		llvm::FunctionType* ft = nullptr;
 		switch (rType) {
@@ -34,7 +46,7 @@ namespace mirror {
 	}
 
 	llvm::Function* mrr_ast_fn::codegen() {
-		llvm::Function* fn = m_prototype->codegen(m_body->returnType());
+		llvm::Function* fn = m_prototype->codegen(m_prototype->return_type());
 
 		if (!fn) {
 			return nullptr;
@@ -117,7 +129,7 @@ namespace mirror {
 			}
 
 			if (callee->arg_size() != m_args.size()) {
-				log_error("Incorrect number of arguments passed got %ld expected %ld for function %s", m_args.size(), callee->arg_size(), m_callee);
+				log_error("Incorrect number of arguments passed got %ld expected %ld for function %s", m_args.size(), callee->arg_size(), m_callee.c_str());
 				return nullptr;
 			}
 

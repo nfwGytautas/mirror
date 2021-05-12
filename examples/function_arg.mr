@@ -1,4 +1,4 @@
-fn TestFunc(x : Num, y : Num) {
+fn TestFunc(x : Num, y : Num) -> Num {
 	return x + y
 }
 

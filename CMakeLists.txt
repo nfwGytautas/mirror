@@ -24,6 +24,10 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/mrrc/src/*.cpp" "${CMAKE_SOU
 message(STATUS "Project source files: ${SOURCE_FILES}")
 add_executable (mrrc ${SOURCE_FILES})
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(mrrc PRIVATE _DEBUG)
+endif()
+
 target_include_directories (mrrc PUBLIC "${CMAKE_SOURCE_DIR}/mrrc/src/")
 
 # Find the libraries that correspond to the LLVM components

@@ -12,7 +12,7 @@ namespace mirror {
 		char* arguments[] = {
 			"", // Doesn't matter
 			"-in",
-			"../examples/match.mr",
+			"../examples/function_arg.mr",
 			"-out",
 			"bin/a.exe"
 		};

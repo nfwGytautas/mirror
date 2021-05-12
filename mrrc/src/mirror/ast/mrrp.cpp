@@ -205,7 +205,7 @@ namespace mirror {
 		}
 
 		std::unique_ptr<mrr_ast_prototype> parse_prototype() {
-			// prot ::= name '(' id*, ')'
+			// prot ::= name '(' (id : type)*, ')' ('->' type)?
 
 			if (lexer::get_current()->Curtok != mrrt_identifier) {
 				log_error("Expected function name in prototype");
@@ -222,6 +222,7 @@ namespace mirror {
 
 			// Arguments
 			std::vector<std::string> argNames;
+			std::vector<std::string> argTypes;
 
 			while (true) {
 				if (lexer::next_token(lexer::get_current()) == ')') {
@@ -235,6 +236,9 @@ namespace mirror {
 
 				if (lexer::get_current()->Curtok == mrrt_identifier) {
 					argNames.push_back(lexer::get_current()->IdentifierStr);
+                    lexer::next_token(lexer::get_current()); // Consume 'id'
+                    lexer::next_token(lexer::get_current()); // Consume ':'
+                    argTypes.push_back(lexer::get_current()->IdentifierStr);
 				}
 				else {
 					log_error("Incorrect function definition");
@@ -242,7 +246,15 @@ namespace mirror {
 				}
 			}
 
-			return std::make_unique<mrr_ast_prototype>(fnName, std::move(argNames));
+			// Return
+			std::string rType = "";
+			if (lexer::get_current()->Curtok == mrrt_rarrow) {
+                lexer::next_token(lexer::get_current()); // Consume '->'
+                rType = lexer::get_current()->IdentifierStr;
+                lexer::next_token(lexer::get_current()); // Consume type
+			}
+
+			return std::make_unique<mrr_ast_prototype>(fnName, std::move(argNames), std::move(argTypes), rType);
 		}
 
 		std::unique_ptr<mrr_ast_fn> parse_definition() {
@@ -304,34 +316,20 @@ namespace mirror {
 			}
 			lexer::next_token(lexer::get_current()); // Consume '{'
 
-			mrr_type rType = mrr_type::mrr_type_unspecified;
-
 			while (lexer::get_current()->Curtok != '}') {
 				if (auto e = parse_expression()) {
-					if (e->get_type() == mrr_type::mrr_type_ret) {
-						mrr_ast_return_expr* re = dynamic_cast<mrr_ast_return_expr*>(e.get());
-						// Check if not conflicting return types
-						if (rType != mrr_type::mrr_type_unspecified && rType != re->get_actual_type()) {
-							log_error("Mixed return types previous was %s, but found %s", rType_to_str(rType), rType_to_str(re->get_actual_type()));
-							return nullptr;
-						}
-						else {
-							rType = re->get_actual_type();
-						}
-					}
-
 					body.push_back(std::move(e));
 				}
 			}
 			lexer::next_token(lexer::get_current()); // Consume '}'
 
-			return std::make_unique<mrr_ast_body_expr>(rType, std::move(body));
+			return std::make_unique<mrr_ast_body_expr>(std::move(body));
 		}
 
 		std::unique_ptr<mrr_ast_expr> parse_return() {
 			// expr ::= return expr
 			lexer::next_token(lexer::get_current()); // Consume 'return'
-			return std::move(parse_expression());
+			return std::make_unique<mrr_ast_return_expr>(std::move(parse_expression()));
 		}
 		
 		std::unique_ptr<mrr_ast_expr> parse_loop() {

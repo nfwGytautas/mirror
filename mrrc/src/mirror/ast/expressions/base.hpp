@@ -16,6 +16,13 @@ namespace mirror {
 		mrr_type_bop = 4
 	};
 
+    /**
+     * Returns mrr_type from specified string
+     * @param type Type to parse
+     * @return mrr_type enum
+     */
+	mrr_type type_from_string(const std::string& type);
+
 	/**
 	 * @brief Base class for all mirror expressions
 	*/

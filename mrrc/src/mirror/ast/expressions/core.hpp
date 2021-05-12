@@ -26,8 +26,8 @@ namespace mirror {
 	*/
 	class mrr_ast_body_expr : public mrr_ast_expr {
 	public:
-		mrr_ast_body_expr(mrr_type rType, std::vector<std::unique_ptr<mrr_ast_expr>> expressions) 
-			: m_retType(rType), m_expressions(std::move(expressions))
+		mrr_ast_body_expr(std::vector<std::unique_ptr<mrr_ast_expr>> expressions)
+			: m_expressions(std::move(expressions))
 		{}
 
 		/**
@@ -35,11 +35,7 @@ namespace mirror {
 		*/
 		virtual llvm::Value* codegen() override;
 
-		mrr_type returnType() const {
-			return m_retType;
-		}
 	private:
 		std::vector<std::unique_ptr<mrr_ast_expr>> m_expressions;
-		mrr_type m_retType;
 	};
 }

@@ -19,6 +19,8 @@ namespace mirror {
 		mrrt_ret = -7,
 		mrrt_loop = -8,
 		mrrt_match = -9,
+		mrrt_rarrow = -10, // -> statement
+		mrrt_type_annot = -11, // :
 	};
 
 	namespace lexer {
