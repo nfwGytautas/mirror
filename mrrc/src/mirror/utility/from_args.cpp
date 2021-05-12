@@ -84,7 +84,7 @@ namespace mirror {
 		log_info("CLANG compilation:");
 
 		// Invoke clang
-		system(std::string("clang " + llvmOut + " -o " + a.Out).c_str());
+		system(std::string("clang " + llvmOut + " -o " + a.Out + " -no-pie").c_str());
 
 		// Cleanup
 		std::filesystem::remove(llvmOut);

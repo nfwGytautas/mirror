@@ -14,7 +14,7 @@ namespace mirror {
 			"-in",
 			"../examples/match.mr",
 			"-out",
-			"bin/Debug/a.exe"
+			"bin/a.exe"
 		};
 
 		from_args(4, arguments);

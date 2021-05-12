@@ -35,6 +35,10 @@ namespace mirror {
 			: m_name(name), m_init(std::move(init))
 		{}
 
+        mrr_var_create_expr(std::string name, std::unique_ptr<mrr_ast_expr> init)
+                : m_name(name), m_init(std::move(init))
+        {}
+
 		virtual mrr_type get_type() override {
 			return m_init->get_type();
 		}

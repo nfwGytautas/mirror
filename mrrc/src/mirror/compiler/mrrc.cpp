@@ -37,7 +37,12 @@ namespace mirror {
 			std::vector<llvm::Type*> args;
 			std::vector<llvm::Value*> argsv;
 			llvm::FunctionType* ft = llvm::FunctionType::get(llvm::Type::getVoidTy(*c->llvm), args, false);
-			llvm::Function* entry = llvm::Function::Create(ft, (llvm::GlobalValue::LinkageTypes)llvm::Function::ExternalLinkage, "_start", c->Module);
+
+#ifdef __unix__
+			llvm::Function* entry = llvm::Function::Create(ft, (llvm::GlobalValue::LinkageTypes)llvm::Function::ExternalLinkage, "_main", c->Module);
+#else
+            llvm::Function* entry = llvm::Function::Create(ft, (llvm::GlobalValue::LinkageTypes)llvm::Function::ExternalLinkage, "_start", c->Module);
+#endif
 
 			auto bb = llvm::BasicBlock::Create(*c->llvm, "_start", entry);
 			c->Builder->SetInsertPoint(bb);

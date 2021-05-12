@@ -331,7 +331,7 @@ namespace mirror {
 		std::unique_ptr<mrr_ast_expr> parse_return() {
 			// expr ::= return expr
 			lexer::next_token(lexer::get_current()); // Consume 'return'
-			return std::make_unique<mrr_ast_return_expr>(parse_expression());
+			return std::move(parse_expression());
 		}
 		
 		std::unique_ptr<mrr_ast_expr> parse_loop() {

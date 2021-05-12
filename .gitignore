@@ -3,6 +3,8 @@
 
 # Visual studio files
 .vs/
+.idea/
+cmake-build-debug/
 
 # CMake files and directories
 CMakeLists.txt.user
