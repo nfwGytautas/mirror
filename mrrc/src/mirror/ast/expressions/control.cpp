@@ -4,54 +4,69 @@
 namespace mirror {
 
 	llvm::Value* mrr_ast_loop_expr::codegen() {
+        llvm::Value* startVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0));
+        llvm::Value* StepVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(1.0));
+
+        llvm::Function* TheFunction = compiler::get_current()->Builder->GetInsertBlock()->getParent();
+
+        // Emit the body of the loop. This, like any other expr, can change the value
+        llvm::AllocaInst* ai = compiler::createEntryBlockAlloca(TheFunction, c_InnerLoopValue);
+        compiler::get_current()->NamedValues[c_InnerLoopValue] = ai;
+
+        // Store the value into the alloca.
+        compiler::get_current()->Builder->CreateStore(startVal, ai);
+
+        llvm::BasicBlock* LoopBB = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "loop", TheFunction);
+
+        // Insert an explicit fall through from the current block to the LoopBB.
+        compiler::get_current()->Builder->CreateBr(LoopBB);
+
+        // Start insertion in LoopBB.
+        compiler::get_current()->Builder->SetInsertPoint(LoopBB);
+
+        m_body->codegen();
+
+        // _it value set
+        llvm::Value* CurVar =
+                compiler::get_current()->Builder->CreateLoad(ai->getAllocatedType(), ai, c_InnerLoopValue);
+        llvm::Value* NextVar = compiler::get_current()->Builder->CreateFAdd(CurVar, StepVal, "nextvar");
+        compiler::get_current()->Builder->CreateStore(NextVar, ai);
+
+        // Evaluate end value
+        llvm::Value* endVal = this->m_expr->codegen();
+
+        // Evaluate end condition
+        llvm::Value* EndCond = nullptr;
 		switch (this->m_expr->get_type()) {
-		case mrr_type::mrr_type_num: {
-			llvm::Value* startVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0));
-			llvm::Value* endVal = this->m_expr->codegen();
-			llvm::Value* StepVal = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(1.0));
+            case mrr_type::mrr_type_num: {
+                // Just check if current _it == endVal
+                EndCond = compiler::get_current()->Builder->CreateFCmpONE(
+                    NextVar, endVal, "loopcond_num");
 
-			llvm::Function* TheFunction = compiler::get_current()->Builder->GetInsertBlock()->getParent();
-
-			// Emit the body of the loop.  This, like any other expr, can change the
-			llvm::AllocaInst* ai = compiler::createEntryBlockAlloca(TheFunction, c_InnerLoopValue);
-			compiler::get_current()->NamedValues[c_InnerLoopValue] = ai;
-
-			// Store the value into the alloca.
-			compiler::get_current()->Builder->CreateStore(startVal, ai);
-
-			llvm::BasicBlock* LoopBB = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "loop", TheFunction);
-
-			// Insert an explicit fall through from the current block to the LoopBB.
-			compiler::get_current()->Builder->CreateBr(LoopBB);
-
-			// Start insertion in LoopBB.
-			compiler::get_current()->Builder->SetInsertPoint(LoopBB);
-
-			m_body->codegen();
-
-			llvm::Value* CurVar =
-				compiler::get_current()->Builder->CreateLoad(ai->getAllocatedType(), ai, c_InnerLoopValue);
-			llvm::Value* NextVar = compiler::get_current()->Builder->CreateFAdd(CurVar, StepVal, "nextvar");
-			compiler::get_current()->Builder->CreateStore(NextVar, ai);
-
-			llvm::Value* EndCond = compiler::get_current()->Builder->CreateFCmpONE(
-				NextVar, endVal, "loopcond");
-
-			// Create the "after loop" block and insert it.
-			llvm::BasicBlock* AfterBB =
-				llvm::BasicBlock::Create(*compiler::get_current()->llvm, "afterloop", TheFunction);
-
-			// Insert the conditional branch into the end of LoopEndBB.
-			compiler::get_current()->Builder->CreateCondBr(EndCond, LoopBB, AfterBB);
-
-			// Any new code will be inserted in AfterBB.
-			compiler::get_current()->Builder->SetInsertPoint(AfterBB);
-
-			return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
+                break;
+            }
+            case mrr_type::mrr_type_bop: {
+                // Check if the condition evaluates to false (0.0)
+                EndCond = compiler::get_current()->Builder->CreateFCmpONE(
+                        endVal, llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0)),
+                        "loopcond_bop");
+                break;
+            }
+            default:
+                return nullptr;
 		}
-		default:
-			return nullptr;
-		}
+
+        // Create the "after loop" block and insert it.
+        llvm::BasicBlock* AfterBB =
+                llvm::BasicBlock::Create(*compiler::get_current()->llvm, "afterloop", TheFunction);
+
+        // Insert the conditional branch into the end of LoopEndBB.
+        compiler::get_current()->Builder->CreateCondBr(EndCond, LoopBB, AfterBB);
+
+        // Any new code will be inserted in AfterBB.
+        compiler::get_current()->Builder->SetInsertPoint(AfterBB);
+
+        return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*compiler::get_current()->llvm));
 	}
 
 	llvm::Value* mrr_ast_match_expr::codegen() {

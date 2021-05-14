@@ -130,6 +130,13 @@ namespace mirror {
 				return mrrt_number;
 			}
 
+			// Equal
+			if (currentChar == '=' && peek_c(ls) == '=') {
+                currentChar = get_c(ls);
+                currentChar = get_c(ls);
+			    return mrrt_equal;
+			}
+
 			// Other
 			if (currentChar == EOF) {
 				return mrrt_eof;

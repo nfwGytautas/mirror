@@ -29,7 +29,6 @@ namespace mirror {
 		mrr_ast_body_expr(std::vector<std::unique_ptr<mrr_ast_expr>> expressions)
 			: m_expressions(std::move(expressions))
 		{}
-
 		/**
 		 * @brief Nullptr if there was no return statement in the code
 		*/

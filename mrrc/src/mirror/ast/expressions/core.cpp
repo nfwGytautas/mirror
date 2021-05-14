@@ -21,7 +21,7 @@ namespace mirror {
 			// Look up name
 			llvm::Value* var = compiler::get_current()->NamedValues[lhse->get_name()];
 			if (!var) {
-				log_error("Unknwon variable name %s", lhse->get_name().c_str());
+				log_error("Unknown variable name %s", lhse->get_name().c_str());
 				return nullptr;
 			}
 
@@ -38,25 +38,32 @@ namespace mirror {
 		}
 
 		switch (m_op) {
-		case '+':
-			return compiler::get_current()->Builder->CreateFAdd(l, r, "addtmp");
-		case '-':
-			return compiler::get_current()->Builder->CreateFSub(l, r, "subtmp");
-		case '*':
-			return compiler::get_current()->Builder->CreateFMul(l, r, "multmp");
-		case '<': {
-			// Compare and then convert
-			auto val = compiler::get_current()->Builder->CreateFCmpULT(l, r, "cmptmp");
-			return compiler::get_current()->Builder->CreateUIToFP(val, llvm::Type::getDoubleTy(*compiler::get_current()->llvm), "booltmp");
-		}
-		case '>': {
-			// Compare and then convert
-			auto val = compiler::get_current()->Builder->CreateFCmpUGT(l, r, "cmptmp");
-			return compiler::get_current()->Builder->CreateUIToFP(val, llvm::Type::getDoubleTy(*compiler::get_current()->llvm), "booltmp");
-		}
-		default:
-			log_error("Invalid binary operator %s", m_op);
-			return nullptr;
+		    case mrrt_equal: {
+                auto val = compiler::get_current()->Builder->CreateFCmpUEQ(l, r);
+                return compiler::get_current()->Builder->CreateUIToFP(val, llvm::Type::getDoubleTy(
+                        *compiler::get_current()->llvm), "booltmp");
+            }
+            case '+':
+                return compiler::get_current()->Builder->CreateFAdd(l, r, "addtmp");
+            case '-':
+                return compiler::get_current()->Builder->CreateFSub(l, r, "subtmp");
+            case '*':
+                return compiler::get_current()->Builder->CreateFMul(l, r, "multmp");
+            case '<': {
+                // Compare and then convert
+                auto val = compiler::get_current()->Builder->CreateFCmpULT(l, r, "cmptmp");
+                return compiler::get_current()->Builder->CreateUIToFP(val, llvm::Type::getDoubleTy(
+                        *compiler::get_current()->llvm), "booltmp");
+            }
+            case '>': {
+                // Compare and then convert
+                auto val = compiler::get_current()->Builder->CreateFCmpUGT(l, r, "cmptmp");
+                return compiler::get_current()->Builder->CreateUIToFP(val, llvm::Type::getDoubleTy(
+                        *compiler::get_current()->llvm), "booltmp");
+            }
+            default:
+                log_error("Invalid binary operator %s", m_op);
+                return nullptr;
 		}
 	}
 

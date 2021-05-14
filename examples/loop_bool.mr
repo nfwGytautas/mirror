@@ -1,0 +1,12 @@
+fn main() {
+	var should_loop = 1
+	loop(should_loop == 1) {
+		print(_it, should_loop)
+
+		match(_it) {
+			(5) to {
+				should_loop = 0
+			}
+		}
+	}
+}

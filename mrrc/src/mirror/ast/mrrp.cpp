@@ -17,35 +17,31 @@ namespace mirror {
 			}
 		}
 
-		int get_precedence(char binop) {
+		int get_precedence(int binop) {
 			// Binary operator precedence
 			switch (binop) {
-			case '=':
-				return 2;
+			    case mrrt_equal:
+                case '=':
+                    return 2;
 
-			case '<':
-			case '>':
-				return 10;
+                case '<':
+                case '>':
+                    return 10;
 
-			case '+':
-			case '-':
-				return 20;
+                case '+':
+                case '-':
+                    return 20;
 
-			case '*':
-				return 40;
+                case '*':
+                    return 40;
 
-			default:
-				return -1;
+                default:
+                    return -1;
 			}
 		}
 
 		int get_tok_precedence() {
 			int ctok = lexer::get_current()->Curtok;
-
-			if (!isascii(ctok)) {
-				return -1;
-			}
-
 			return get_precedence(ctok);
 		}
 
@@ -157,7 +153,7 @@ namespace mirror {
 		}
 
 		std::unique_ptr<mrr_ast_expr> parse_expression() {
-			// expr ::= primary binoprhs '}?'
+			// expr ::= primary binoprhs
 
 			auto lhs = parse_primary();
 			if (!lhs) {
