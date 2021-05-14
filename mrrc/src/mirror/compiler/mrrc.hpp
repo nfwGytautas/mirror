@@ -28,6 +28,7 @@
 #include "llvm/Target/TargetOptions.h"
 
 #include "mirror/lexer/mrrl.hpp"
+#include "mirror/ast/expressions/type.hpp"
 
 namespace mirror {
 
@@ -41,6 +42,8 @@ namespace mirror {
 			llvm::Module* Module = nullptr;
 			std::unordered_map<std::string, llvm::AllocaInst*> NamedValues;
 			llvm::legacy::FunctionPassManager* FPM = nullptr;
+			std::unordered_map<std::string, llvm::Type*> Typedefs;
+            std::unordered_map<std::string, std::vector<mrr_typedef_expr::field>> FieldMap;
 		};
 
 		/**
@@ -93,6 +96,12 @@ namespace mirror {
 		 * @param var Variable name
 		*/
 		llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* fn, const std::string& var);
+
+		/**
+		 * Returns llvm::Type object or nullptr if a type with name cannot be found
+		 * @param name Name of the type
+		 */
+		llvm::Type* get_type(const std::string& name);
 	}
 
 }

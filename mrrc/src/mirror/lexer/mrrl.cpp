@@ -52,6 +52,10 @@ namespace mirror {
 				return mrrt_match;
 			}
 
+			if (ls->IdentifierStr == "type") {
+			    return mrrt_typedef;
+			}
+
 			return mrrt_identifier;
 		}
 
@@ -117,7 +121,7 @@ namespace mirror {
 			}
 
 			// Number
-			if (isdigit(currentChar) || currentChar == '.') {
+			if (isdigit(currentChar)) {
 				std::string numStr;
 
 				// TODO: Fix for input where '.' entered multiple times

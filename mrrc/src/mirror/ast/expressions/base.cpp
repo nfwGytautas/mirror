@@ -22,11 +22,11 @@ namespace mirror {
 	}
 
     mrr_type type_from_string(const std::string &type) {
-        if (type == "Num") {
+        if (type == "num") {
             return mrr_type_num;
         }
 
-        if (type == "Str") {
+        if (type == "str") {
             return mrr_type_str;
         }
 

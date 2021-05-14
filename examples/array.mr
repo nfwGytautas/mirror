@@ -1,0 +1,13 @@
+fn PrintArr(a : Arr<num>) {
+	print(a)
+}
+
+fn main() {
+	var iarr = Arr<num>(20)
+
+	loop(20) {
+		iarr[_it] = _it
+	}
+
+	PrintArr(iarr)
+}

@@ -1,0 +1,8 @@
+type Test {
+    num value
+}
+
+fn main() {
+	var t = Test()
+    print(t.value)
+}

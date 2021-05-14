@@ -21,7 +21,8 @@ namespace mirror {
 		mrrt_match = -9,
 		mrrt_rarrow = -10, // -> statement
 		mrrt_type_annot = -11, // :
-		mrrt_equal = -12
+		mrrt_equal = -12,
+		mrrt_typedef = -13,
 	};
 
 	namespace lexer {

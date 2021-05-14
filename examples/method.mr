@@ -1,5 +1,5 @@
-object Test {
-    Num value
+type Test {
+    num value
 }
 
 Test generic fn Print() {

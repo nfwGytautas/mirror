@@ -110,11 +110,19 @@ namespace mirror {
 		std::unique_ptr<mrr_ast_expr> parse_identifier() {
 			// expr ::= 
 			//		identifier
+			//      identifier '.' field
 			//		identifier '(' expression ')'
 
 			std::string id_name = lexer::get_current()->IdentifierStr;
 
 			lexer::next_token(lexer::get_current()); // Consume identifier
+
+            if (lexer::get_current()->Curtok == '.') {
+                lexer::next_token(lexer::get_current()); // Consume '.'
+                std::string field = lexer::get_current()->IdentifierStr;
+                lexer::next_token(lexer::get_current()); // Consume field
+                return std::make_unique<mrr_field_expr>(id_name, field);
+            }
 
 			if (lexer::get_current()->Curtok != '(') {
 				return std::make_unique<mrr_var_expr>(id_name);
@@ -415,5 +423,38 @@ namespace mirror {
 			
 			return std::make_unique<mrr_ast_match_expr>(std::move(val), std::move(expressions), std::move(dExpr));
 		}
-	}
+
+        std::unique_ptr<mrr_typedef_expr> parse_typedef() {
+		    // expr ::= 'type' name '{' *(type field) '}'
+
+            lexer::next_token(lexer::get_current()); // Consume 'type'
+            lexer::next_token(lexer::get_current()); // Consume '{'
+
+            std::string name = lexer::get_current()->IdentifierStr;
+            lexer::next_token(lexer::get_current()); // Consume 'name'
+
+            std::vector<mrr_typedef_expr::field> fields;
+
+            while (lexer::get_current()->Curtok != '}') {
+                if (lexer::get_current()->Curtok == mrrt_identifier) {
+                    mrr_typedef_expr::field f = {};
+
+                    f.type = lexer::get_current()->IdentifierStr;
+                    lexer::next_token(lexer::get_current()); // Consume 'type'
+
+                    f.name = lexer::get_current()->IdentifierStr;
+                    lexer::next_token(lexer::get_current()); // Consume 'field'
+
+                    fields.push_back(f);
+                }
+                else {
+                    log_error("Incorrect type definition");
+                    return nullptr;
+                }
+            }
+            lexer::next_token(lexer::get_current()); // Consume '}'
+
+            return std::make_unique<mrr_typedef_expr>(name, fields);
+        }
+    }
 }

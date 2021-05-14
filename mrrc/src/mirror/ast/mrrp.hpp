@@ -74,5 +74,10 @@ namespace mirror {
 		 * @brief Parses a match statement
 		*/
 		std::unique_ptr<mrr_ast_expr> parse_match();
+
+        /**
+         * @brief Parses a new custom type definition
+        */
+        std::unique_ptr<mrr_typedef_expr> parse_typedef();
 	}
 }

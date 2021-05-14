@@ -24,6 +24,22 @@ namespace mirror {
 			}
 		}
 
+        bool handle_typedef() {
+            if (auto tdAST = parser::parse_typedef()) {
+                if (auto* tdIR = tdAST->codegen()) {
+                    tdIR->print(llvm::errs());
+                    fprintf(stderr, "\n");
+                }
+
+                // TODO: Add if failed to codegen
+                return true;
+            }
+            else {
+                // Error recovery
+                return false;
+            }
+        }
+
 		void add_std(mrrc* c) {
 			llvm::FunctionCallee print = c->Module->getOrInsertFunction(
 				"printf",
@@ -76,6 +92,11 @@ namespace mirror {
 						return false;
 					}
 					break;
+                case mrrt_typedef:
+                    if (!handle_typedef()) {
+                        return false;
+                    }
+                    break;
 				}
 			}
 		}
@@ -178,5 +199,18 @@ namespace mirror {
 			llvm::IRBuilder<> tmpb(&fn->getEntryBlock(), fn->getEntryBlock().begin());
 			return tmpb.CreateAlloca(llvm::Type::getDoubleTy(*g_ci->llvm), 0, var.c_str());
 		}
-	}
+
+        llvm::Type *get_type(const std::string& name) {
+		    if (name == "num") {
+		        return llvm::Type::getDoubleTy(*g_ci->llvm);
+		    }
+
+		    if (get_current()->Typedefs.find(name) == get_current()->Typedefs.end()){
+                return get_current()->Typedefs[name];
+		    }
+		    else {
+		        return nullptr;
+		    }
+        }
+    }
 }

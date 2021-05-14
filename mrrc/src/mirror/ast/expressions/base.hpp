@@ -13,7 +13,10 @@ namespace mirror {
 		mrr_type_ret = 3,
 
 		// Meta type, meaning this is a binary operation
-		mrr_type_bop = 4
+		mrr_type_bop = 4,
+
+        // Meta type, meaning this is a custom type either created or imported
+        mrr_type_custom = -5
 	};
 
     /**

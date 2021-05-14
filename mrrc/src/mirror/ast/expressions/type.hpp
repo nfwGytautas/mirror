@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include "mirror/ast/expressions/base.hpp"
+
 namespace mirror {
 	
 	/**
@@ -79,4 +82,43 @@ namespace mirror {
 		std::string m_val;
 	};
 
+    /**
+     * @brief Typedef expression used to generate a new type
+    */
+    class mrr_typedef_expr {
+    public:
+        struct field {
+            std::string type;
+            std::string name;
+        };
+
+        mrr_typedef_expr(const std::string& name, std::vector<field> fields) : m_name(name), m_fields(std::move(fields)) {}
+
+        mrr_type get_type() { return mrr_type_custom; }
+
+        llvm::Type* codegen();
+    private:
+        std::string m_name;
+        std::vector<field> m_fields;
+    };
+
+    /**
+	 * @brief Field reference expression
+	*/
+    class mrr_field_expr : public mrr_ast_expr {
+    public:
+        mrr_field_expr(const std::string& object, const std::string& field)
+                : m_object(object), m_field(field)
+        {}
+
+        virtual mrr_type get_type() override {
+            return mrr_type_custom;
+        }
+
+        // Inherited via mrr_ast_expr
+        virtual llvm::Value* codegen() override;
+    private:
+        std::string m_object;
+        std::string m_field;
+    };
 }
