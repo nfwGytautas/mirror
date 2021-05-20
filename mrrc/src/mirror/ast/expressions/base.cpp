@@ -4,8 +4,6 @@
 
 namespace mirror {
 	
-
-	
 	llvm::Function* get_func(const std::string& name) {
 		llvm::Function* fn = compiler::get_current()->Module->getFunction(name);
 

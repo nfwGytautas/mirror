@@ -8,9 +8,13 @@
 #include "mirror/lexer/mrrl.hpp"
 #include "mirror/compiler/mrrc.hpp"
 
+#include "mirror/config.hpp"
 #include "mirror/utility/log.hpp"
 
 namespace mirror {
+
+	// Init config
+	bool config::LexerOutput = false;
 
 	struct args {
 		std::vector<std::string> In;
@@ -30,6 +34,9 @@ namespace mirror {
 			else if (astr == "-out") {
 				result.Out = std::string(argv[i + 1]);
 				i++;
+			}
+			else if (astr == "--verbose") {
+				config::LexerOutput = true;
 			}
 		}
 
@@ -66,16 +73,33 @@ namespace mirror {
 
 		for (const auto& inFile : a.In) {
 			log_info("Compiling: '%s'", inFile.c_str());
-			lexer::mrrl* l = lexer::from_file(inFile);
 
-			if (!compiler::compile(c, l)) {
-				log_error("Failed to compile '%s' check console for more information", inFile.c_str());
-				compiler::free_mrrc(c);
-				lexer::free_mrrl(l);
-				return;
+			// Pass 1 
+			// Create token stream
+			lexer_v2::mrr_token_stream ts = lexer_v2::mrrl::get()->parse_file(inFile);
+			
+			if (config::LexerOutput) {
+				ts.print();
 			}
 
-			lexer::free_mrrl(l);
+			// Pass 2
+			// Group token stream into specific groups
+			//  Type definitions
+			//  Methods
+			//  Functions
+			
+
+
+			//lexer_v2::mrrl* l = lexer::from_file(inFile);
+
+			//if (!compiler::compile(c, l)) {
+			//	log_error("Failed to compile '%s' check console for more information", inFile.c_str());
+			//	compiler::free_mrrc(c);
+			//	lexer::free_mrrl(l);
+			//	return;
+			//}
+
+			//lexer::free_mrrl(l);
 		}
 
 		log_info("Emitting to: '%s'", llvmOut.c_str());

@@ -12,11 +12,12 @@ namespace mirror {
 		char* arguments[] = {
 			"", // Doesn't matter
 			"-in",
-			"../examples/type.mr",
+			"../examples/method.mr",
 			"-out",
-			"bin/a.exe"
+			"bin/a.exe",
+			"--verbose" // Verbose mode for debug
 		};
 
-		from_args(4, arguments);
+		from_args(6, arguments);
 	}
 }

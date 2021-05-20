@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include "mirror/utility/macros.hpp"
 
 namespace mirror {
 
@@ -77,5 +79,98 @@ namespace mirror {
 		 * @param l mrrl instance to set
 		*/
 		void set_current(mrrl* l);
+	}
+
+	namespace lexer_v2 {
+
+		/**
+		 * @brief Single token stream entry
+		*/
+		struct mrr_tse {
+			/**
+			 * @brief Token of the entry
+			*/
+			mrr_token token;
+
+			/**
+			 * @brief Parameter as string
+			*/
+			std::string param;
+		};
+
+		/**
+		 * @brief Stream of mrr_tse
+		*/
+		class mrr_token_stream {
+		public:
+			mrr_token_stream();
+
+			void add(mrr_token token, const std::string& param = "") {
+				m_tses.push_back({token, param});
+			}
+
+			/**
+			 * @brief Prints the token stream into the standard output
+			*/
+			void print();
+
+			mrr_tse& current() {
+				return m_tses[m_tseCounter];
+			}
+
+			mrr_tse& next() {
+				return m_tses[m_tseCounter + 1];
+			}
+
+			mrr_tse& prev() {
+				return m_tses[m_tseCounter - 1];
+			}
+
+			void advance() {
+				m_tseCounter++;
+			}
+
+			/**
+			 * @brief Returns all token stream entries
+			*/
+			std::vector<mrr_tse> get_all() {
+				return m_tses;
+			}
+		private:
+			size_t m_tseCounter = 0;
+			std::vector<mrr_tse> m_tses;
+		};
+
+		/**
+		 * @brief Mirror lexer
+		*/
+		class mrrl {
+		public:
+			static mrrl* get();
+
+			/**
+			 * @brief Parses the specified file into a token stream
+			 * @param file File to parse
+			 * @return Token stream object instance
+			*/
+			mrr_token_stream parse_file(const std::string& file);
+
+			/**
+			 * @brief Returns the string representation of the specified token
+			 * @param t Token to stringize
+			*/
+			static std::string token_to_str(mrr_token t);
+
+			/**
+			 * @brief Parses input string into token stream
+			 * @param str String to parse
+			 * @return Token stream object instance
+			*/
+			mrr_token_stream parse_string(const std::string& str);
+		private:
+			mrrl() {};
+			mrrl(mrrl&) = delete;
+		};
+
 	}
 }

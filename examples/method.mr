@@ -2,7 +2,7 @@ type Test {
     num value
 }
 
-Test generic fn Print() {
+Test fn Print() {
 	print(_this.value)
 }
 
