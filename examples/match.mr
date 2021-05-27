@@ -26,4 +26,10 @@ fn main() {
 			print("Default")
 		}
 	}
+
+	match(i) {
+		(_) to {
+			print("Default")
+		}
+	}
 }

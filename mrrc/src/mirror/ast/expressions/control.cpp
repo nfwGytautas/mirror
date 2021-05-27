@@ -78,6 +78,7 @@ namespace mirror {
 		}
 
 		// Now for matching
+		std::vector<llvm::Value*> iValues;
 		llvm::Function* fn = compiler::get_current()->Builder->GetInsertBlock()->getParent();
 
 		llvm::AllocaInst* any_matched = compiler::createEntryBlockAlloca(fn, "any_matched");
@@ -123,12 +124,27 @@ namespace mirror {
 		}
 
 		// Jump to merge at last match block
-		if (bbse.size() > 0) {
-			compiler::get_current()->Builder->CreateBr(merge);
+
+		// Generate default
+		llvm::Value* defVal = nullptr;
+		if (m_default) {
+			llvm::Value* any_matched_val = compiler::get_current()->Builder->CreateLoad(any_matched);
+			llvm::Value* defCond = compiler::get_current()->Builder->CreateFCmpOEQ(any_matched_val, llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0)), "mdcond");
+
+			llvm::BasicBlock* match_default = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "match_default", fn);
+			compiler::get_current()->Builder->CreateCondBr(defCond, match_default, merge);
+			compiler::get_current()->Builder->SetInsertPoint(match_default);
+
+			llvm::Value* val = m_default->codegen();
+
+			if (val) {
+				iValues.push_back(val);
+			}
 		}
 
+		compiler::get_current()->Builder->CreateBr(merge);
+
 		// Generate match bodies
-		std::vector<llvm::Value*> iValues;
 		for (size_t i = 0; i < m_expressions.size(); i++) {
 			compiler::get_current()->Builder->SetInsertPoint(bbs[i]);
 			llvm::Value* val = m_expressions[i].second->codegen();
@@ -148,16 +164,6 @@ namespace mirror {
 
 		// Generate merge
 		compiler::get_current()->Builder->SetInsertPoint(merge);
-
-		// Generate default
-		llvm::Value* defVal = nullptr;
-		if (m_default) {
-			llvm::Value* val = m_default->codegen();
-			
-			if (val) {
-				iValues.push_back(val);
-			}
-		}
 
 		if (iValues.size() == 0) {
 			return nullptr;
