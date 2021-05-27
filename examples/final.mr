@@ -1,22 +1,22 @@
 fn main() {
-	var i = 0
-	var inc = 0.5
 	var should_loop = 1
 
-	loop(!should_loop) {
-		should_loop = match (i) {
-			i<5 to { print("less than 5") }
+	loop(should_loop == 1) {
+		match (_it) {
+			(_it<5) to { 
+				print("less than 5") 
+			}
 
-			i>5 to {
+			(_it>5) to {
 				print("more than 5")
 			}
 
-			10 to {
+			(10) to {
 				print("breaking")
-				yield 0
+				should_loop = 0
 			}
 
-			_ to {
+			(_) to {
 				print("default")
 			}
 		}

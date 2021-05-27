@@ -7,10 +7,13 @@ fn main() {
 		}
 	}
 
-
 	match(i) {
 		(i < 10) to {
 			print("Less than 10")
+		}
+
+		(5) to {
+			print("Value is 5")
 		}
 	}
 
@@ -18,7 +21,7 @@ fn main() {
 		(i > 5) to {
 			print("More than 5")
 		}
-
+	
 		(_) to {
 			print("Default")
 		}

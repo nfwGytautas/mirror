@@ -80,21 +80,21 @@ namespace mirror {
 		// Now for matching
 		llvm::Function* fn = compiler::get_current()->Builder->GetInsertBlock()->getParent();
 
+		llvm::AllocaInst* any_matched = compiler::createEntryBlockAlloca(fn, "any_matched");
+		compiler::get_current()->Builder->CreateStore(llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(0.0)), any_matched);
+		llvm::Value* match_inc = llvm::ConstantFP::get(*compiler::get_current()->llvm, llvm::APFloat(1.0));
+
 		// Create blocks
 		std::vector<llvm::BasicBlock*> bbs;
+		std::vector<llvm::BasicBlock*> bbse;
 		for (size_t i = 0; i < m_expressions.size(); i++) {
 			bbs.push_back(llvm::BasicBlock::Create(*compiler::get_current()->llvm, "mc_" + std::to_string(i), fn));
-		}
-
-		llvm::BasicBlock* defaultBB = nullptr;
-		if (m_default) {
-			defaultBB = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "match_default", fn);
+			bbse.push_back(llvm::BasicBlock::Create(*compiler::get_current()->llvm, "mce_" + std::to_string(i), fn));
 		}
 		
 		llvm::BasicBlock* merge = llvm::BasicBlock::Create(*compiler::get_current()->llvm, "match_merge", fn);
 
 		int i = 0;
-		llvm::BasicBlock* lastBB = nullptr;
 		for (auto& ms : m_expressions) {
 			// Expression to match
 			llvm::Value* cVal = ms.first->codegen();
@@ -114,19 +114,17 @@ namespace mirror {
 				condV = compiler::get_current()->Builder->CreateFCmpOEQ(mVal, cVal, "mcond");
 			}
 
-			if (i + 1 < bbs.size()) {
-				compiler::get_current()->Builder->CreateCondBr(condV, bbs[i], bbs[i + 1]);
-				lastBB = bbs[i + 1];
-			}
-			else if(defaultBB) {
-				compiler::get_current()->Builder->CreateCondBr(condV, bbs[i], defaultBB);
-				lastBB = defaultBB;
-			}
-			else {
-				compiler::get_current()->Builder->CreateCondBr(condV, bbs[i], merge);
+			if (i < bbs.size()) {
+				compiler::get_current()->Builder->CreateCondBr(condV, bbs[i], bbse[i]);
 			}
 
-			i++;
+			compiler::get_current()->Builder->SetInsertPoint(bbse[i]);
+			i += 1;
+		}
+
+		// Jump to merge at last match block
+		if (bbse.size() > 0) {
+			compiler::get_current()->Builder->CreateBr(merge);
 		}
 
 		// Generate match bodies
@@ -134,33 +132,43 @@ namespace mirror {
 		for (size_t i = 0; i < m_expressions.size(); i++) {
 			compiler::get_current()->Builder->SetInsertPoint(bbs[i]);
 			llvm::Value* val = m_expressions[i].second->codegen();
-			compiler::get_current()->Builder->CreateBr(merge);
-			bbs[i] = compiler::get_current()->Builder->GetInsertBlock();
-			iValues.push_back(val);
-		}
 
-		// Generate default
-		llvm::Value* defVal = nullptr;
-		if (defaultBB) {
-			compiler::get_current()->Builder->SetInsertPoint(defaultBB);
-			llvm::Value* val = m_default->codegen();
-			compiler::get_current()->Builder->CreateBr(merge);
-			defaultBB = compiler::get_current()->Builder->GetInsertBlock();
-			defVal = val;
+			// Increment match count
+			llvm::Value* any_matched_val = compiler::get_current()->Builder->CreateLoad(any_matched);
+			llvm::Value* v = compiler::get_current()->Builder->CreateFAdd(any_matched_val, match_inc, "add_any_matched");
+			compiler::get_current()->Builder->CreateStore(v, any_matched);
+
+			compiler::get_current()->Builder->CreateBr(bbse[i]);
+			bbs[i] = compiler::get_current()->Builder->GetInsertBlock();
+
+			if (val) {
+				iValues.push_back(val);
+			}
 		}
 
 		// Generate merge
 		compiler::get_current()->Builder->SetInsertPoint(merge);
-		llvm::PHINode* pn = compiler::get_current()->Builder->CreatePHI(llvm::Type::getDoubleTy(*compiler::get_current()->llvm), 2, "match_tmp");
-		
+
+		// Generate default
+		llvm::Value* defVal = nullptr;
+		if (m_default) {
+			llvm::Value* val = m_default->codegen();
+			
+			if (val) {
+				iValues.push_back(val);
+			}
+		}
+
+		if (iValues.size() == 0) {
+			return nullptr;
+		}
+
+		llvm::PHINode* pn = compiler::get_current()->Builder->CreatePHI(llvm::Type::getDoubleTy(*compiler::get_current()->llvm), iValues.size(), "match_tmp");
+
 		for (size_t i = 0; i < iValues.size(); i++) {
 			if (iValues[i]) {
 				pn->addIncoming(iValues[i], bbs[i]);
 			}
-		}
-
-		if (defVal) {
-			pn->addIncoming(defVal, defaultBB);
 		}
 
 		return pn;
