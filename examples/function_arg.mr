@@ -1,0 +1,7 @@
+fn TestFunc(x : Num, y : Num) -> Num {
+	return x + y
+}
+
+fn main() {
+	print(TestFunc(10, 5))
+}
