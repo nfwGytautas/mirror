@@ -1,0 +1,48 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-G",
+                "Unix Makefiles",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-S ./",
+                "-B build"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "cd build; make -j8",
+            "group": "build",
+            "dependsOn": [
+                "Configure Debug"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "rm -r build/; rm CMakeCache.txt",
+            "group": "build"
+        },
+        {
+            "label": "Launch",
+            "type": "shell",
+            "command": "./build/bin/mrrc.exe",
+            "args": [
+                "C:/dev/mirror/examples/Build.mrp"
+            ],
+            "dependsOn": [
+                "Build"
+            ],
+            "group": "build"
+        },
+    ]
+}

@@ -1,0 +1,11 @@
+PROJECT = Mirror example project
+
+OUTPUT_TOKENS = True
+BUILD_DIRECTORY = build
+
+FILES = {
+    function.mr,
+    hello_world.mr
+}
+
+OUTPUT = hello_world.exe
