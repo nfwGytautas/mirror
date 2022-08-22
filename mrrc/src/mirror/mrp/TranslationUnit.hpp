@@ -38,7 +38,7 @@ public:
      *
      * @return Token stream object
      */
-    const lexer::TokenStream& getTokenStream() const;
+    lexer::TokenStream& getTokenStream();
 
 private:
     std::filesystem::path m_file;

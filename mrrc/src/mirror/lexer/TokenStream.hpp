@@ -4,9 +4,12 @@
 #include <vector>
 
 #include "mirror/lexer/Token.hpp"
+#include "mirror/lexer/TokenQueue.hpp"
 
 namespace mirror {
 namespace lexer {
+
+class TokenQueue;
 
 /**
  * @brief Token stream object used to then construct abstract syntax trees
@@ -36,6 +39,13 @@ public:
      * @return false Lexed incorrectly syntax error
      */
     bool verify() const;
+
+    /**
+     * @brief Returns the token stream in a shape of a queue
+     *
+     * @return TokenQueue object
+     */
+    TokenQueue getTokenQueue();
 
     /**
      * @brief Prints the token stream to the output console for debugging purposes

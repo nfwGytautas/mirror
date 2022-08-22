@@ -2,6 +2,7 @@
 
 #include "mirror/lexer/Lexer.hpp"
 #include "mirror/mrp/MRPParser.hpp"
+#include "mirror/parser/Parser.hpp"
 #include "mirror/utility/Log.hpp"
 
 int main(int argc, char** argv) {
@@ -23,8 +24,10 @@ int main(int argc, char** argv) {
     for (mirror::mrp::TranslationUnit& unit : project.m_units) {
         LOG_INFO("Processing %s", unit.getFile().string().c_str());
 
-        // Lex the project
         mirror::lexer::Lexer lexer(unit);
+        mirror::parser::Parser parser(unit);
+
+        // Lex the project
         if (!lexer.lex()) {
             LOG_ERROR("Failed to lex %s", unit.getFile().string());
             continue;
@@ -48,8 +51,10 @@ int main(int argc, char** argv) {
         }
 
         // Create the abstract syntax tree
-
-
+        if (!parser.parse()) {
+            LOG_ERROR("Failed parsing %s", unit.getFile().string());
+            continue;
+        }
     }
 
     return 0;

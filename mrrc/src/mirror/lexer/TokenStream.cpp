@@ -12,6 +12,10 @@ bool TokenStream::verify() const {
     return true;
 }
 
+TokenQueue TokenStream::getTokenQueue() {
+    return TokenQueue(m_stream);
+}
+
 const std::string TokenStream::print() const {
     std::stringstream ss;
 

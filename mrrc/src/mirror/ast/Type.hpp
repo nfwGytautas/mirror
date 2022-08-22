@@ -1,20 +1,24 @@
 #pragma once
 
+#include <string>
+
 namespace mirror {
 namespace ast {
 
 /**
- * @brief Base Type class
+ * @brief Type class
  */
-class Type {
+class Type final {
 public:
-    virtual ~Type() {}
-};
+    /**
+     * @brief Construct a new Type object
+     *
+     * @param name Name of the type
+     */
+    Type(const std::string& name);
 
-/**
- * @brief Void type that is empty
- */
-class VoidType : public Type {
+private:
+    std::string m_name;
 };
 
 } // namespace ast

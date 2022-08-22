@@ -36,10 +36,18 @@ public:
      */
     void addArgument(const Variable& variable);
 
+    /**
+     * @brief Set the body of the function
+     *
+     * @param body Body of the function
+     */
+    void setBody(std::unique_ptr<BaseExpression> body);
+
 private:
     std::string m_name = "";
     Type m_returnType = VoidType();
     std::vector<Variable> m_arguments;
+    std::unique_ptr<BaseExpression> m_body;
 };
 
 } // namespace ast

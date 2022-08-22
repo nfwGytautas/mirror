@@ -13,7 +13,7 @@ void TranslationUnit::setTokenStream(const lexer::TokenStream& stream) {
     m_tokenStream = stream;
 }
 
-const lexer::TokenStream& TranslationUnit::getTokenStream() const {
+lexer::TokenStream& TranslationUnit::getTokenStream() {
     return m_tokenStream;
 }
 
