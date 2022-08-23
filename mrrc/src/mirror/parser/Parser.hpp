@@ -54,6 +54,22 @@ private:
      */
     std::unique_ptr<ast::BaseExpression> parseScope(lexer::TokenQueue& tokens);
 
+    /**
+     * @brief Parse a identifier AST
+     *
+     * @param tokens Token queue
+     * @return std::unique_ptr<ast::BaseExpression> instance
+     */
+    std::unique_ptr<ast::BaseExpression> parseIdentifier(lexer::TokenQueue& tokens);
+
+    /**
+     * @brief Parse a string AST
+     *
+     * @param tokens Token queue
+     * @return std::unique_ptr<ast::BaseExpression> instance
+     */
+    std::unique_ptr<ast::BaseExpression> parseString(lexer::TokenQueue& tokens);
+
 private:
     mrp::TranslationUnit& m_unit;
     size_t m_tokenIndex = 0;

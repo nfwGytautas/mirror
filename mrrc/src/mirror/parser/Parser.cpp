@@ -1,7 +1,10 @@
 #include "Parser.hpp"
 
+#include "mirror/ast/FunctionCallExpression.hpp"
 #include "mirror/ast/FunctionExpression.hpp"
 #include "mirror/ast/ScopeExpression.hpp"
+#include "mirror/ast/StringExpression.hpp"
+#include "mirror/ast/VariableExpression.hpp"
 #include "mirror/lexer/TokenQueue.hpp"
 #include "mirror/lexer/TokenStream.hpp"
 #include "mirror/utility/Log.hpp"
@@ -33,6 +36,12 @@ std::unique_ptr<ast::BaseExpression> Parser::parseOne(lexer::TokenQueue& tokens)
     switch (tokens.peek().Token) {
     case lexer::Token::Fn: {
         return parseFunction(tokens);
+    }
+    case lexer::Token::Identifier: {
+        return parseIdentifier(tokens);
+    }
+    case lexer::Token::String: {
+        return parseString(tokens);
     }
     default: {
         LOG_ERROR("Unexpected token %ld", static_cast<unsigned int>(tokens.peek().Token));
@@ -103,6 +112,7 @@ std::unique_ptr<ast::BaseExpression> Parser::parseFunction(lexer::TokenQueue& to
 }
 
 std::unique_ptr<ast::BaseExpression> Parser::parseScope(lexer::TokenQueue& tokens) {
+    // { Expression... }
     auto scope = std::make_unique<ast::ScopeExpression>();
 
     tokens.pop(); // Consume {
@@ -114,6 +124,40 @@ std::unique_ptr<ast::BaseExpression> Parser::parseScope(lexer::TokenQueue& token
 
     tokens.pop(); // Consume }
     return std::move(scope);
+}
+
+std::unique_ptr<ast::BaseExpression> Parser::parseIdentifier(lexer::TokenQueue& tokens) {
+    // identifier
+    // identifier ( args... )
+
+    auto identifier = tokens.pop();
+
+    if (tokens.peek().Token != lexer::Token::ParenthesisOpen) {
+        return std::make_unique<ast::VariableExpression>(identifier.Identifier);
+    }
+
+    tokens.pop(); // Consume (
+
+    std::unique_ptr<ast::FunctionCallExpression> fnCall = std::make_unique<ast::FunctionCallExpression>(identifier.Identifier);
+
+    while (tokens.peek().Token != lexer::Token::ParenthesisClose) {
+        auto expression = parseOne(tokens);
+
+        if (!expression) {
+            return nullptr;
+        }
+
+        fnCall->addArgument(std::move(expression));
+    }
+
+    tokens.pop(); // Consume )
+
+    return std::move(fnCall);
+}
+
+std::unique_ptr<ast::BaseExpression> Parser::parseString(lexer::TokenQueue& tokens) {
+    // string
+    return std::make_unique<ast::StringExpression>(tokens.pop().Identifier);
 }
 
 } // namespace parser

@@ -13,7 +13,7 @@ namespace ast {
 /**
  * @brief Function expression class
  */
-class FunctionExpression : public BaseExpression {
+class FunctionExpression final : public BaseExpression {
 public:
     /**
      * @brief Construct a new Function Expression object
@@ -45,7 +45,7 @@ public:
 
 private:
     std::string m_name = "";
-    Type m_returnType = VoidType();
+    Type m_returnType = Type("void");
     std::vector<Variable> m_arguments;
     std::unique_ptr<BaseExpression> m_body;
 };

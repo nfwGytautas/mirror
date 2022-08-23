@@ -11,7 +11,7 @@ namespace ast {
 /**
  * @brief Scope expression class
  */
-class ScopeExpression : public BaseExpression {
+class ScopeExpression final : public BaseExpression {
 public:
     /**
      * @brief Add argument to function
