@@ -2,45 +2,30 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Configure Debug",
+            "label": "[TEST] Help",
             "type": "shell",
-            "command": "cmake",
+            "command": "./build/bin/mrrc",
             "args": [
-                "-G",
-                "Unix Makefiles",
-                "-DCMAKE_BUILD_TYPE=Debug",
-                "-S ./",
-                "-B build"
+                "--help",
             ],
             "group": "build"
         },
         {
-            "label": "Build",
+            "label": "[TEST] Version",
             "type": "shell",
-            "command": "cd build; make -j8",
-            "group": "build",
-            "dependsOn": [
-                "Configure Debug"
+            "command": "./build/bin/mrrc",
+            "args": [
+                "--version",
             ],
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "Clean",
-            "type": "shell",
-            "command": "rm -r build/; rm CMakeCache.txt",
             "group": "build"
         },
         {
-            "label": "Launch",
+            "label": "[TEST] Tokens",
             "type": "shell",
-            "command": "./build/bin/mrrc.exe",
+            "command": "./build/bin/mrrc",
             "args": [
-                "C:/dev/mirror/examples/Build.mrp"
-            ],
-            "dependsOn": [
-                "Build"
+                "tokens",
+                "./tests/input/TokenCheck.mr"
             ],
             "group": "build"
         },

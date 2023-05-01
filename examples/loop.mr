@@ -1,5 +1,0 @@
-fn main() {
-	loop(10) {
-		print(_it)
-	}
-}

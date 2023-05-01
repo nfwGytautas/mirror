@@ -52,9 +52,7 @@
         "numeric": "cpp",
         "random": "cpp"
     },
-    "cmake.debugConfig": {
-        "args": [
-            "C:/dev/mirror/examples/Build.mrp"
-        ]
-    }
+    "cSpell.words": [
+        "MRRC"
+    ]
 }
