@@ -25,6 +25,7 @@
             "command": "./build/bin/mrrc",
             "args": [
                 "tokens",
+                "--trace",
                 "./tests/input/TokenCheck.mr"
             ],
             "group": "build"

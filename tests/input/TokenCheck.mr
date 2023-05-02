@@ -1,3 +1,7 @@
 /**
  * @brief Test input file for token parsing
  */
+
+fn test_simple() -> void {
+	print("Hello, world!")
+}

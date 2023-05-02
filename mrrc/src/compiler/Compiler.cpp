@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "mirror/Errors.hpp"
+#include "mirror/lexer/Lexer.hpp"
 
 #include "utility/HelpMessage.hpp"
 #include "utility/cli/CLIParser.hpp"
@@ -27,7 +28,21 @@ int MRRC::compileArgs(int argc, char** argv) {
         std::cout << "Mirror compiler v" << MRRC_VERSION << "\n";
     }
 
+    // Commands
+    if (cli.Command == utility::cli::Command::TOKENS) {
+        // Output tokens
+        std::cout << "Outputting tokens\n";
+        for (const std::string& inputFile : cli.Arguments) {
+            std::cout << tokenizeFile(inputFile.c_str()).print() << std::endl;
+        }
+    }
+
     return static_cast<int>(CompilerInternalError::NO_ERROR);
+}
+
+lexer::TokenStream MRRC::tokenizeFile(const char* file) {
+    lexer::Lexer lexer(file);
+    return lexer.lex();
 }
 
 } // namespace mirror::compiler

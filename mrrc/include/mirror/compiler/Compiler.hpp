@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mirror/lexer/TokenStream.hpp"
+
 namespace mirror::compiler {
 
 /**
@@ -17,6 +19,14 @@ public:
      * @return int Exit code for more info look at mirror::CompilerInternalError enum
      */
     static int compileArgs(int argc, char** argv);
+
+    /**
+     * @brief Run the mirror tokenizer on a file
+     *
+     * @param file File to tokenize
+     * @return TokenStream object
+     */
+    static lexer::TokenStream tokenizeFile(const char* file);
 };
 
 } // namespace mirror::compiler

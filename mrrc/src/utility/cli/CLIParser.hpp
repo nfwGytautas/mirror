@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "mirror/Errors.hpp"
 
@@ -12,6 +13,21 @@ namespace mirror::utility::cli {
 enum class GlobalOption : uint8_t {
     HELP,    // --help, -h
     VERSION, // --version, -v
+};
+
+/**
+ * @brief Options for tokens command
+ */
+enum class TokensOptions : uint8_t {
+    TRACE, // --trace, -t
+};
+
+/**
+ * @brief Mirror compiler commands
+ */
+enum class Command : uint8_t {
+    NO_COMMAND, // Command not specified
+    TOKENS,     // Prints the mirror compiler generated tokens into a file
 };
 
 /**
@@ -36,6 +52,13 @@ private:
      */
     void reactToGlobalOption(GlobalOption option, const char* optionString);
 
+    /**
+     * @brief Reacts to a command option
+     *
+     * @param option Option
+     */
+    void reactToCommandOption(const std::string& option);
+
 public:
     bool Empty = true; // False if there are any arguments passed
 
@@ -46,6 +69,9 @@ public:
         bool Help = false;    // True if --help was passed as a global option
         bool Version = false; // True if --version was passed as a global option
     } GlobalFlags;
+
+    Command Command = Command::NO_COMMAND; // Command to run
+    std::vector<std::string> Arguments;    // Arguments
 };
 
 } // namespace mirror::utility::cli
